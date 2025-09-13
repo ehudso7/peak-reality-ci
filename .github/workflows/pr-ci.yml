@@ -4,6 +4,7 @@ on:
     branches: [ "**" ]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 concurrency:
   group: pr-ci-${{ github.ref }}
   cancel-in-progress: true
