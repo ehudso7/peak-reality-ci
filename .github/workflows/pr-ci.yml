@@ -4,6 +4,7 @@ on:
     branches: [ "**" ]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 concurrency:
   group: pr-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -85,6 +86,12 @@ jobs:
           print(json.dumps(rep))
           PY
 
+      - name: Create AI-Act evidence
+        run: |
+          mkdir -p evidence/ai-act/postMarketMonitoring evidence/ai-act/seriousIncidentReports
+          echo '{"id": "PMM-LIVE", "plan_version": "1.0", "last_review_date": "'$(date +%Y-%m-%d)'", "bootstrap": false}' > evidence/ai-act/postMarketMonitoring/PMM-LIVE.json
+          echo '{"id": "SIR-LIVE", "deadline_days": 15, "reports_filed": 0, "policy_ref": "AI_ACT.md#serious-incidents", "bootstrap": false}' > evidence/ai-act/seriousIncidentReports/SIR-LIVE.json
+
       - name: Emit PR timing evidence
         id: evidence
         run: |
@@ -104,10 +111,18 @@ jobs:
             --canary-min-events $CANARY_MIN_EVENTS
 
       - name: Upload evidence as artifact (optional)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: evidence-live
           path: evidence/
+
+      - name: Commit evidence to branch (optional)
+        if: ${{ success() }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "evidence: live telemetry (auto)"
+          add: "evidence/"
 
       - name: Stop timer
         if: always()
