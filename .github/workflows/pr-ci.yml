@@ -110,6 +110,13 @@ jobs:
           name: evidence-live
           path: evidence/
 
+      - name: Commit evidence to branch (optional)
+        if: ${{ success() }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "evidence: live telemetry (auto)"
+          add: "evidence/"
+
       - name: Stop timer
         if: always()
         run: echo "done"

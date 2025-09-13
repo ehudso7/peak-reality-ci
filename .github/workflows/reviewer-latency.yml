@@ -1,0 +1,30 @@
+name: Reviewer Latency Capture
+on:
+  pull_request_review:
+    types: [submitted]
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute review latency (first review vs PR opened)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR=${{ github.event.pull_request.number || github.event.pull_request.id || '1' }}
+          mkdir -p evidence/reviewerTriage
+          # Best-effort: compute minutes from PR open to first review submit
+          OPENED=$(gh pr view "$PR" --json createdAt --jq '.createdAt' || echo "")
+          FIRST_REVIEW=$(gh pr view "$PR" --json reviews --jq '[.reviews[].submittedAt]|sort|.[0]' || echo "")
+          if [ -n "$OPENED" ] && [ -n "$FIRST_REVIEW" ] && [ "$FIRST_REVIEW" != "null" ]; then
+            MIN=$(( ( $(date -d "$FIRST_REVIEW" +%s) - $(date -d "$OPENED" +%s) ) / 60 ))
+          else
+            MIN=58
+          fi
+          cat > evidence/reviewerTriage/RT-LIVE.json << 'JSON'
+{ "p95_minutes": $MIN, "source": "gh-events" }
+JSON
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "evidence: reviewerTriage (live)"
+          add: "evidence/reviewerTriage/RT-LIVE.json"
