@@ -1,0 +1,1 @@
+export {}; // entrypoint for extension test suite

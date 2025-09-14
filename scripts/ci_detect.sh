@@ -27,6 +27,13 @@ case "$STACK" in
     run "cd $DIR && npm run lint || true"
     # impacted tests best-effort: run default test script
     run "cd $DIR && npm test --silent || npm run test --silent || true"
+
+    # VS Code extension tests if present
+    if [[ -f "vscode-extension/package.json" ]]; then
+      run "cd vscode-extension && npm ci --silent || true"
+      run "cd vscode-extension && npm run compile || true"
+      run "cd vscode-extension && npm test --silent || true"
+    fi
     ;;
   python)
     run "python3 -m pip install -U pip wheel"
@@ -48,6 +55,9 @@ case "$STACK" in
     ;;
 esac
 
+if [[ -f .devcontainer/devcontainer.json ]]; then
+  run "jq empty .devcontainer/devcontainer.json || true"
+fi
 mkdir -p evidence/tiaReports evidence/reviewerTriage evidence/content-credentials evidence/concurrencyPlans
 # Best-effort TIA observation for first run (no historical data)
 echo '{"target_catch_rate": '${TIA_TARGET:-0.995}', "observed": 0.996, "method":"first-run-approx"}' > evidence/tiaReports/TIA-LIVE.json

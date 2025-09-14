@@ -26,3 +26,23 @@ This file tracks the upcoming epics and priorities for the Peak Reality++ platfo
 ### Risk
 - R2 (internal dev-tool);
 - limited blast radius; CI gates protect stability and quality.
+
+## Epic 2: IDE & Devcontainer Integrations
+| Purpose | Provide plug‑and‑play VS Code extension and Devcontainer templates so developers instantly get the full Peak‑Reality experience in their IDE and containerized workspace. |
+|:--------|:---------------------------------------------------------------------------------------------------------|
+| Why     | Lower the barrier to entry with zero‑config IDE setup, built‑in lint/test runner UI, and reproducible devcontainers. |
+| Inputs  | `.devcontainer/` folder and `vscode-extension/` source code.                                                |
+| Outputs | `.devcontainer/devcontainer.json`, `.devcontainer/Dockerfile`; VS Code extension package in `vscode-extension/`. |
+| Depends | Epic 1 (CLI & SDK installed globally), VS Code Extension API.                                              |
+| Used by | Developer onboarding; Codespaces; GitHub Desktop/VS Code users                                                   |
+
+### Tests
+- Devcontainer: lint JSON schema; smoke start via `devcontainer build --workspace .` (best‑effort)
+- VS Code extension: unit tests via `vscode-test` harness; ensure commands register.
+
+### Ops
+- Publish VS Code extension to VS Code Marketplace on Git tag
+- Provide Devcontainer badge in README
+
+### Risk
+- R2 (developer tooling); ephemeral blast radius; gated by CI + manual review of extension manifest.
