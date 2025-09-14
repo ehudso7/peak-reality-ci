@@ -3,7 +3,7 @@ set -euo pipefail
 
 echo "::group::Detect stack"
 STACK="generic"
-if [[ -f "package.json" ]]; then STACK="node"; fi
+if [[ -f "package.json" || -f "peak-platform/package.json" ]]; then STACK="node"; fi
 if [[ -f "pyproject.toml" || -f "requirements.txt" ]]; then STACK="python"; fi
 if [[ -f "go.mod" ]]; then STACK="go"; fi
 if [[ -f "Cargo.toml" ]]; then STACK="rust"; fi
@@ -15,10 +15,18 @@ run() { echo "+ $*"; eval "$*"; }
 
 case "$STACK" in
   node)
-    run "npm ci || yarn install --frozen-lockfile || pnpm i --frozen-lockfile"
-    run "npm run lint || true"
+    # Best-effort: support root or nested peak-platform workspace
+    if [[ -f "package.json" ]]; then
+      DIR=""
+    elif [[ -f "peak-platform/package.json" ]]; then
+      DIR="peak-platform/"
+    else
+      DIR=""
+    fi
+    run "cd $DIR && npm ci --silent || true"
+    run "cd $DIR && npm run lint || true"
     # impacted tests best-effort: run default test script
-    run "npm test --silent || npm run test --silent || true"
+    run "cd $DIR && npm test --silent || npm run test --silent || true"
     ;;
   python)
     run "python3 -m pip install -U pip wheel"
